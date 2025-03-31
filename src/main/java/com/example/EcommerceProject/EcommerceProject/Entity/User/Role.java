@@ -1,6 +1,8 @@
 package com.example.EcommerceProject.EcommerceProject.Entity.User;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,13 +16,12 @@ import java.util.List;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
+
+    @NotBlank(message = "Authority is required")
+    @Size(min = 3, max = 50, message = "Authority must be between 3 and 50 characters")
     private String authority;
-    @ManyToMany()
-    @JoinTable(
-            name = "user_roles", // Junction table
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private List<User> users;
 }
