@@ -1,5 +1,6 @@
 //package com.example.EcommerceProject.EcommerceProject.JWT;
 //
+//import com.example.EcommerceProject.EcommerceProject.Entity.User.User;
 //import io.jsonwebtoken.Claims;
 //import io.jsonwebtoken.Jwts;
 //import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,24 +22,34 @@
 //    private static final String SECRET = "TmV3U2VjcmV0S2V5Rm9ySldUU2lnbmluZ1B1cnBvc2VzMTIzNDU2Nzg=";
 //
 //    // Generates a JWT token for the given userName.
-//    public String generateToken(String userName) {
+//    public String generateToken(User user, String userName) {
 //        // Prepare claims for the token
 //        Map<String, Object> claims = new HashMap<>();
+//        claims.put("role",user.getRole());
 //
 //        // Build JWT token with claims, subject, issued time, expiration time, and signing algorithm
-//        return createToken(claims, userName);
-//    }
-//
-//    // Helper method to create a JWT token
-//    private String createToken(Map<String, Object> claims, String userName) {
 //        return Jwts.builder()
 //                .setClaims(claims)
 //                .setSubject(userName)
 //                .setIssuedAt(new Date(System.currentTimeMillis()))
-//                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 3)) // 3 minutes
+//                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 3 minutes
 //                .signWith(getSignKey(), SignatureAlgorithm.HS256)
-//                .compact();
-//    }
+//                .compact();    }
+//
+//    // Helper method to create a JWT token
+//    public String refreshToken(User user, String userName) {
+//        // Prepare claims for the token
+//        Map<String, Object> claims = new HashMap<>();
+//        claims.put("role",user.getRole());
+//
+//        // Build JWT token with claims, subject, issued time, expiration time, and signing algorithm
+//        return Jwts.builder()
+//                .setClaims(claims)
+//                .setSubject(userName)
+//                .setIssuedAt(new Date(System.currentTimeMillis()))
+//                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24*60)) // 3 minutes
+//                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+//                .compact();    }
 //
 //    // Creates a signing key from the base64 encoded secret.
 //    private Key getSignKey() {

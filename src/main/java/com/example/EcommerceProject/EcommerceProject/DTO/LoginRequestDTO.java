@@ -1,8 +1,9 @@
 package com.example.EcommerceProject.EcommerceProject.DTO;
 
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.*;
-
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,21 +11,11 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class CustomerRequestDTO {
 
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    @NotBlank(message = "Last name is required")
-    private String lastName;
-
-    @Email(message = "Invalid email format")
+public class LoginRequestDTO {
     @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
-
-    @NotNull(message = "Contact number cannot be null")
-    @Pattern(regexp = "^[0-9]{10}$", message = "Contact number must be exactly 10 digits")
-    private Long contact;
 
     @NotBlank(message = "Password must not be blank")
     @Size(min = 8, max = 15, message = "Password must be between 8 and 15 characters")
@@ -33,7 +24,4 @@ public class CustomerRequestDTO {
             message = "Password must have at least one lowercase, one uppercase, one number, and one special character"
     )
     private String password;
-
-    @NotBlank(message = "Confirm password is required")
-    private String confirmPassword;
 }

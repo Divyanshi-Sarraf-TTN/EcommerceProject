@@ -2,13 +2,17 @@ package com.example.EcommerceProject.EcommerceProject.Service;
 
 import com.example.EcommerceProject.EcommerceProject.DTO.CustomerRequestDTO;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Customer;
+import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
 import com.example.EcommerceProject.EcommerceProject.Repository.CustomerRepository;
+import com.example.EcommerceProject.EcommerceProject.Repository.RoleRepository;
 import com.example.EcommerceProject.EcommerceProject.Token.Token;
 import com.example.EcommerceProject.EcommerceProject.Token.TokenRepository;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,6 +29,11 @@ public class CustomerService {
 
     @Autowired
     private TokenRepository tokenRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Transactional
     public String registerCustomer(CustomerRequestDTO request) throws MessagingException {
@@ -45,9 +54,14 @@ public class CustomerService {
         customer.setLastName(request.getLastName());
         customer.setEmail(request.getEmail());
         customer.setContact(request.getContact());
-        customer.setPassword(request.getPassword()); // Hash this in production
+        customer.setPassword(passwordEncoder.encode(request.getPassword())); // Hash this in production
         customer.setActive(false);
         customer.setPasswordUpdateDate(LocalDate.from(LocalDateTime.now()));
+        customer.setLocked(false);
+        Role role = roleRepository.findByAuthority("CUSTOMER")
+                        .orElseThrow(()-> new RuntimeException("Not Found"));
+
+        customer.setRole(role);
         customerRepository.save(customer);
 
         String token = UUID.randomUUID().toString();

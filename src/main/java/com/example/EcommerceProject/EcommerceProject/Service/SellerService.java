@@ -2,7 +2,9 @@ package com.example.EcommerceProject.EcommerceProject.Service;
 
 import com.example.EcommerceProject.EcommerceProject.DTO.SellerRequestDTO;
 
+import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Seller;
+import com.example.EcommerceProject.EcommerceProject.Repository.RoleRepository;
 import com.example.EcommerceProject.EcommerceProject.Repository.SellerRepository;
 import com.example.EcommerceProject.EcommerceProject.Token.Token;
 import com.example.EcommerceProject.EcommerceProject.Token.TokenRepository;
@@ -22,6 +24,8 @@ public class SellerService {
     private EmailService emailService;
 @Autowired
     private TokenRepository tokenRepository;
+@Autowired
+private RoleRepository roleRepository;
 public String registerSeller(SellerRequestDTO request)throws MessagingException{
 
 
@@ -37,6 +41,7 @@ public String registerSeller(SellerRequestDTO request)throws MessagingException{
         throw new IllegalArgumentException("CompanyName should be unique");
 
     }
+
     Seller seller = new Seller();
     seller.setFirstName(request.getFirstName());
     seller.setLastName(request.getLastName());
@@ -45,6 +50,11 @@ public String registerSeller(SellerRequestDTO request)throws MessagingException{
     seller.setCompanyName(request.getCompanyName());
     seller.setAddress(request.getCompanyAddress());
     seller.setGst(request.getGst());
+    seller.setLocked(false);
+    Role role = roleRepository.findByAuthority("SELLER")
+            .orElseThrow(()-> new RuntimeException("Not Found"));
+
+    seller.setRole(role);
     seller.setPassword(request.getPassword());
 
 
