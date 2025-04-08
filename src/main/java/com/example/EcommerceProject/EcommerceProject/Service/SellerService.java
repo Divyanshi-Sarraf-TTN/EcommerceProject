@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 @Service
 public class SellerService {
@@ -51,7 +52,7 @@ public String registerSeller(SellerRequestDTO request)throws MessagingException{
     seller.setAddress(request.getCompanyAddress());
     seller.setGst(request.getGst());
     seller.setLocked(false);
-    Role role = roleRepository.findByAuthority("SELLER")
+    Role role = roleRepository.findByAuthority("ROLE_SELLER")
             .orElseThrow(()-> new RuntimeException("Not Found"));
 
     seller.setRole(role);
@@ -63,8 +64,7 @@ public String registerSeller(SellerRequestDTO request)throws MessagingException{
     seller.setPasswordUpdateDate(LocalDate.from(LocalDateTime.now()));
     sellerRepository.save(seller);
     String token = UUID.randomUUID().toString();
-    LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(1);
-
+    Date expiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000);
     Token tokenEntity = new Token(seller.getEmail(), token, expiryTime);
     tokenRepository.save(tokenEntity);
 

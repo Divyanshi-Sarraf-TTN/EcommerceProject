@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -58,14 +59,14 @@ public class CustomerService {
         customer.setActive(false);
         customer.setPasswordUpdateDate(LocalDate.from(LocalDateTime.now()));
         customer.setLocked(false);
-        Role role = roleRepository.findByAuthority("CUSTOMER")
+        Role role = roleRepository.findByAuthority("ROLE_CUSTOMER")
                         .orElseThrow(()-> new RuntimeException("Not Found"));
 
         customer.setRole(role);
         customerRepository.save(customer);
 
         String token = UUID.randomUUID().toString();
-        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(1);
+        Date expiryTime = new Date(System.currentTimeMillis() + 60 * 1000*60*30);
 
         Token tokenEntity = new Token(customer.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
@@ -86,10 +87,11 @@ public class CustomerService {
         Token tokenEntity = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid activation token"));
 
-        if (tokenEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (new Date().after(tokenEntity.getExpiresAt())) {
 
             String newToken = UUID.randomUUID().toString();
-            LocalDateTime newExpiryTime = LocalDateTime.now().plusMinutes(1);
+            Date newExpiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000); // 1 minute
+
 
             Token newTokenEntity = new Token(tokenEntity.getEmail(), newToken, newExpiryTime);
             tokenRepository.save(newTokenEntity);
@@ -122,8 +124,7 @@ public class CustomerService {
         tokenRepository.deleteByEmail(email);
 
         String token = UUID.randomUUID().toString();
-        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(1);
-
+        Date expiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000);
         Token tokenEntity = new Token(customer.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
 

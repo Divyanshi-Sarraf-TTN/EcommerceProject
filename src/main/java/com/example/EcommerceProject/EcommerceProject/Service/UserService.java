@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -42,7 +43,7 @@ public class UserService {
         tokenRepository.deleteByEmail(forgotPasswordDTO.getEmail());
         //generate token
         String token = UUID.randomUUID().toString();
-        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(30);
+        Date expiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000);
         //save token
         Token tokenEntity = new Token(user.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
@@ -66,7 +67,7 @@ public class UserService {
 
             Token tokenEntity = tokenRepository.findByToken(resetPasswordDTO.getToken())
                     .orElseThrow(() -> new IllegalArgumentException("Invalid activation token"));
-        if (tokenEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (new Date().after(tokenEntity.getExpiresAt())) {
 
 
 

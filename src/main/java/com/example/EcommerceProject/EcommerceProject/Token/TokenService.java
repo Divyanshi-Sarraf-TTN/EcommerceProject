@@ -5,6 +5,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -13,7 +14,7 @@ public class TokenService {
     @Autowired
     private TokenRepository tokenRepository;
 
-    public void saveToken(String email, String token, LocalDateTime expiresAt) {
+    public void saveToken(String email, String token, Date expiresAt) {
         tokenRepository.save(new Token(email, token, expiresAt));
     }
 
