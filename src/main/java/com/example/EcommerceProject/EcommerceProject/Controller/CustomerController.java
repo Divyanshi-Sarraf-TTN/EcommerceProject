@@ -23,7 +23,7 @@ public class CustomerController {
   private LoginService loginService;
 
     @PostMapping("/register")
-    ResponseEntity<String> register(@RequestBody CustomerRequestDTO request) throws MessagingException {
+    ResponseEntity<String> register(@RequestBody @Valid CustomerRequestDTO request) throws MessagingException {
         return ResponseEntity.ok(customerService.registerCustomer(request));
     }
 
@@ -32,7 +32,7 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.activateCustomer(token));
     }
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequestDTO loginRequestDTO)throws MessagingException{
+    public ResponseEntity<String> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO)throws MessagingException{
         return ResponseEntity.ok(loginService.apiLogin(loginRequestDTO));
     }
 

@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface SellerRepository extends JpaRepository<Seller,Long> {
     Optional<Object>findByEmail(String email);
-    Optional<Object>findByGst(double gst);
+    Optional<Object>findByGst(String gst);
     Optional<Object>findByCompanyName(String companyName);
 }

@@ -46,6 +46,11 @@ public class JWTFilter extends OncePerRequestFilter {
             // Extracting username from the token
             userName = jwtService.extractUserName(token);
         }
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // If username is extracted and there is no authentication in the current SecurityContext
         if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
