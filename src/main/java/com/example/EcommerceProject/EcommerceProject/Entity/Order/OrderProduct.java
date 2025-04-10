@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderProduct {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @NotNull(message = "Quantity is required")

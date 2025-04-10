@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .hasAuthority("ROLE_CUSTOMER")
                         .requestMatchers("/api/seller/**")
                         .hasAuthority("ROLE_SELLER")
-                        .requestMatchers("/api/admin/**")
+                        .requestMatchers("/api/admin/**","/admin/access/**")
                         .hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()) // Allow all requests
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
