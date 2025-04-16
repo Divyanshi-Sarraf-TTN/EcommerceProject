@@ -1,11 +1,15 @@
 package com.example.EcommerceProject.EcommerceProject.DTO;
 
+import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import jakarta.persistence.Column;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -37,4 +41,6 @@ public class CustomerRequestDTO {
 
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
+    private AddressRequestDTO address;
+
 }

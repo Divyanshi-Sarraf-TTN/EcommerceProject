@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,8 +26,8 @@ public class Customer extends User {
     private Long contact;
 
     //@NotEmpty(message = "At least one address is required")
-    @ManyToMany(mappedBy = "customer",cascade=CascadeType.ALL)
-   private List<Address> address;
+    @ManyToMany(mappedBy = "customers",cascade=CascadeType.ALL)
+   private List<Address> addresses=new ArrayList<>();
 
    @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)
     private List<ProductReview>productReviews;
@@ -37,4 +38,8 @@ public class Customer extends User {
 
   @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)
     private List<Cart> carts;
+    public void addAddress(Address address) {
+        this.addresses.add(address);
+        address.getCustomers().add(this);
+    }
 }

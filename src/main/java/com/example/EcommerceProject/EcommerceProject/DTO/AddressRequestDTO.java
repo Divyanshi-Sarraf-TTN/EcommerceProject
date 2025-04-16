@@ -9,14 +9,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
-
+@ToString
 public class AddressRequestDTO {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @NotBlank(message = "City is required")
     @Size(min = 2, max = 50, message = "City must be between 2 and 50 characters")
@@ -41,7 +39,6 @@ public class AddressRequestDTO {
     @NotBlank(message = "Label is required")
     @Size(min = 3, max = 20, message = "Label must be between 3 and 20 characters (e.g., Home, Work)")
     private String label;
-
 
 
 

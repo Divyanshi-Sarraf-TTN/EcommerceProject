@@ -46,10 +46,10 @@ private boolean isLocked;
 private Integer invalidAttemptCount;
 
 private LocalDate passwordUpdateDate;
+private String image;
 
 @ManyToOne
 @JoinColumn(name="role")
     private Role role;
-
 
 }

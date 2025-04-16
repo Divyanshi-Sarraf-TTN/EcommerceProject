@@ -56,7 +56,6 @@ public class JwtAuthenticationManager implements AuthenticationManager {
         if (!user.isActive()) {
             throw new DisabledException("Account is not active");
         }
-
         if (user.isLocked()) {
             throw new LockedException("Account is locked");
         }

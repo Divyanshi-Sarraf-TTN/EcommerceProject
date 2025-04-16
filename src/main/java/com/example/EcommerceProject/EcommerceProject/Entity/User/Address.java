@@ -1,6 +1,7 @@
 package com.example.EcommerceProject.EcommerceProject.Entity.User;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -44,14 +46,16 @@ public class Address {
     @NotBlank(message = "Label is required")
     @Size(min = 3, max = 20, message = "Label must be between 3 and 20 characters (e.g., Home, Work)")
     private String label;
-
+    public Boolean isDeleted=false;
 
 
 
 
     @OneToOne
     @JoinColumn(name="seller_id")
+    @JsonIgnore
     private Seller seller;
+
     @ManyToMany
     @JoinTable(
             name = "customer_address", // Junction table
@@ -59,7 +63,7 @@ public class Address {
             inverseJoinColumns = @JoinColumn(name = "address_id")
 
     )
-   private  List<Customer> customer;
+   private List<Customer> customers=new ArrayList<>();
 
 
 

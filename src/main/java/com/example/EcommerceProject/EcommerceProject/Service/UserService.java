@@ -1,91 +1,166 @@
 package com.example.EcommerceProject.EcommerceProject.Service;
 
+import com.example.EcommerceProject.EcommerceProject.DTO.AddressRequestDTO;
 import com.example.EcommerceProject.EcommerceProject.DTO.ForgotPasswordDTO;
 import com.example.EcommerceProject.EcommerceProject.DTO.ResetPasswordDTO;
-import com.example.EcommerceProject.EcommerceProject.Entity.User.Customer;
-import com.example.EcommerceProject.EcommerceProject.Entity.User.Seller;
+import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.User;
+import com.example.EcommerceProject.EcommerceProject.Repository.AddressRepository;
 import com.example.EcommerceProject.EcommerceProject.Repository.UserRepository;
 import com.example.EcommerceProject.EcommerceProject.Token.Token;
 import com.example.EcommerceProject.EcommerceProject.Token.TokenRepository;
 import jakarta.mail.MessagingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
 @Service
 public class UserService {
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    EmailService emailService;
-    @Autowired
-    TokenRepository tokenRepository;
-    @Autowired
-    PasswordEncoder passwordEncoder;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private TokenRepository tokenRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private AddressRepository addressRepository;
 
     public String forgotPassword(ForgotPasswordDTO forgotPasswordDTO) throws MessagingException {
-        //email should exist in db
+        logger.info("Attempting forgot password process for email: {}", forgotPasswordDTO.getEmail());
+
         User user = (User) userRepository.findByEmail(forgotPasswordDTO.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Email should exist in db"));
-        //user must be active
+                .orElseThrow(() -> {
+                    logger.error("Email not found in DB: {}", forgotPasswordDTO.getEmail());
+                    return new IllegalArgumentException("Email should exist in db");
+                });
+
         if (!user.isActive()) {
-            throw new RuntimeException("user is not active");
+            logger.warn("Inactive user attempted to reset password: {}", forgotPasswordDTO.getEmail());
+            throw new RuntimeException("User is not active");
         }
-        //delete the token
+
         tokenRepository.deleteByEmail(forgotPasswordDTO.getEmail());
-        //generate token
         String token = UUID.randomUUID().toString();
         Date expiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000);
-        //save token
         Token tokenEntity = new Token(user.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
-        //send mail
-        sendActivationEmail(forgotPasswordDTO.getEmail(), token);
-        return "Mail to reset password is send successfully!";
 
+        sendActivationEmail(forgotPasswordDTO.getEmail(), token);
+        logger.info("Reset password token generated and email sent for: {}", forgotPasswordDTO.getEmail());
+
+        return "Mail to reset password is sent successfully!";
     }
+
     @Async
     public void sendActivationEmail(String email, String token) throws MessagingException {
         String activationLink = "http://localhost:8080/customers/forgotpassword?token=" + token;
         String emailBody = "Click the link to reset password to your account: " + activationLink;
         emailService.sendEmail(email, "Reset Password to Your Account", emailBody);
+        logger.info("Reset password email sent to {}", email);
     }
-    public String updatePassword(ResetPasswordDTO resetPasswordDTO)
-    {
+
+    public String updatePassword(ResetPasswordDTO resetPasswordDTO) {
+        logger.info("Attempting to update password using reset token");
+
         if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {
+            logger.error("Passwords do not match");
             throw new IllegalArgumentException("Passwords do not match");
         }
-        //token is expired
 
-            Token tokenEntity = tokenRepository.findByToken(resetPasswordDTO.getToken())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid activation token"));
+        Token tokenEntity = tokenRepository.findByToken(resetPasswordDTO.getToken())
+                .orElseThrow(() -> {
+                    logger.error("Invalid token used for password reset: {}", resetPasswordDTO.getToken());
+                    return new IllegalArgumentException("Invalid activation token");
+                });
+
         if (new Date().after(tokenEntity.getExpiresAt())) {
-
-
-
+            logger.warn("Token expired for email: {}", tokenEntity.getEmail());
             tokenRepository.deleteByEmail(tokenEntity.getEmail());
-            return " token is expired. Password cannot be updated";
-
-
+            return "Token is expired. Password cannot be updated";
         }
 
+        User user = (User) userRepository.findByEmail(tokenEntity.getEmail())
+                .orElseThrow(() -> {
+                    logger.error("No user found for token email: {}", tokenEntity.getEmail());
+                    return new IllegalArgumentException("Invalid data");
+                });
 
-            User user = (User) userRepository.findByEmail(tokenEntity.getEmail())
-                    .orElseThrow(()-> new IllegalArgumentException("Invalid data"));
-
-            user.setPassword(passwordEncoder.encode(resetPasswordDTO.getPassword()));
-            userRepository.save(user);
+        user.setPassword(passwordEncoder.encode(resetPasswordDTO.getPassword()));
+        userRepository.save(user);
         tokenRepository.deleteByEmail(tokenEntity.getEmail());
-            return "Password is updated";
 
+        logger.info("Password updated successfully for {}", tokenEntity.getEmail());
+        return "Password is updated";
+    }
 
+    public String updatePasswordbysellerandcustomer(String token, ResetPasswordDTO resetPasswordDTO) {
+        logger.info("Updating password using token for seller/customer");
+
+        if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {
+            logger.error("Passwords do not match");
+            return "Password do not match";
+        }
+
+        Token token1 = tokenRepository.findByToken(token)
+                .orElseThrow(() -> {
+                    logger.error("Invalid token provided: {}", token);
+                    return new RuntimeException("No token found");
+                });
+
+        User user1 = (User) userRepository.findByEmail(token1.getEmail())
+                .orElseThrow(() -> {
+                    logger.error("No user found with email: {}", token1.getEmail());
+                    return new RuntimeException("No user found in database with email");
+                });
+
+        user1.setPassword(passwordEncoder.encode(resetPasswordDTO.getPassword()));
+        userRepository.save(user1);
+
+        logger.info("Password updated successfully for {}", token1.getEmail());
+        return "Password updated successfully";
+    }
+
+    public String addressUpdatebySellerandCustomer(String token, Long id, AddressRequestDTO addressRequestDTO) {
+        logger.info("Updating address ID {} for token {}", id, token);
+
+        Address address = addressRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.error("Address ID not found: {}", id);
+                    return new RuntimeException("Id does not exist");
+                });
+
+        if (addressRequestDTO.getCity() != null && !addressRequestDTO.getCity().isBlank()) {
+            address.setCity(addressRequestDTO.getCity());
+        }
+        if (addressRequestDTO.getState() != null && !addressRequestDTO.getState().isBlank()) {
+            address.setState(addressRequestDTO.getState());
+        }
+        if (addressRequestDTO.getCountry() != null && !addressRequestDTO.getCountry().isBlank()) {
+            address.setCountry(addressRequestDTO.getCountry());
+        }
+        if (addressRequestDTO.getZipCode() != null) {
+            address.setZipCode(addressRequestDTO.getZipCode());
+        }
+        if (addressRequestDTO.getAddressLine() != null && !addressRequestDTO.getAddressLine().isBlank()) {
+            address.setAddressLine(addressRequestDTO.getAddressLine());
+        }
+        if (addressRequestDTO.getLabel() != null && !addressRequestDTO.getLabel().isBlank()) {
+            address.setLabel(addressRequestDTO.getLabel());
+        }
+
+        addressRepository.save(address);
+        logger.info("Address updated successfully for ID {}", id);
+        return "Address updated successfully";
     }
 }

@@ -34,8 +34,6 @@ public class SellerRequestDTO {
     @NotBlank(message = "Company Name is required")
     private String companyName;
 
-    @NotNull(message = "Company Address is required")
-    private Address companyAddress;
 
     @NotNull(message = "Company Contact is required")
     @Min(value = 1000000000, message = "Contact number must be at least 10 digits")
@@ -47,6 +45,8 @@ public class SellerRequestDTO {
 
     @NotBlank(message = "Last Name is required")
     private String lastName;
+
+    private AddressRequestDTO address;
 
     // Getters and Setters
 }

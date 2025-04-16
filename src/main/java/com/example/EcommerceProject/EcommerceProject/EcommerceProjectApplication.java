@@ -32,6 +32,21 @@ public class EcommerceProjectApplication {
 								  RoleRepository roleRepository,
 								  PasswordEncoder passwordEncoder) {
 		return args -> {
+
+			if(roleRepository.findAll().isEmpty()){
+				Role roleAdmin = new Role();
+				Role roleSeller = new Role();
+				Role roleCustomer = new Role();
+
+				roleAdmin.setAuthority("ROLE_ADMIN");
+				roleSeller.setAuthority("ROLE_SELLER");
+				roleCustomer.setAuthority("ROLE_CUSTOMER");
+				roleRepository.save(roleAdmin);
+				roleRepository.save(roleSeller);
+				roleRepository.save(roleCustomer);
+				System.out.println("✅ Role created successfully!");
+			}
+
 			if (adminRepository.findByEmail("divyanshi.sarraf@tothenew.com").isEmpty()) {
 				Admin admin = new Admin();
 				admin.setFirstName("Divyanshi");

@@ -70,6 +70,7 @@ public class JWTService {
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
         // Extract the specified claim using the provided function
         final Claims claims = extractAllClaims(token);
+        System.out.println("before claim");
         return claimResolver.apply(claims);
     }
 
@@ -77,6 +78,8 @@ public class JWTService {
     //return-> Claims object containing all claims.
     private Claims extractAllClaims(String token) {
         // Parse and return all claims from the token
+
+        System.out.println("before parsing");
         return Jwts.parserBuilder()
                 .setSigningKey(getSignKey())
                 .build().parseClaimsJws(token).getBody();
@@ -87,6 +90,7 @@ public class JWTService {
     //return-> True if the token is expired, false otherwise.
     public Boolean isTokenExpired(String token) {
         // Check if the token's expiration time is before the current time
+        System.out.println("before expiration");
         return extractExpiration(token).before(new Date());
     }
 
@@ -101,5 +105,9 @@ public class JWTService {
         System.out.println(userDetails.getUsername());
         // Also check if the token is expired
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 }

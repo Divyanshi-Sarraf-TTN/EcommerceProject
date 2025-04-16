@@ -1,6 +1,7 @@
 package com.example.EcommerceProject.EcommerceProject.JWT;
 
 
+import com.example.EcommerceProject.EcommerceProject.Token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,9 @@ public class JWTFilter extends OncePerRequestFilter {
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
     // Method to lazily fetch the UserService bean from the ApplicationContext
     // This is done to avoid Circular Dependency issues
     private SecurityUserService getUserService() {
@@ -39,18 +43,18 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = null;
         String userName = null;
 
+        System.out.println("Filter starts Here");
+
 // TODO : add check for blacklist tokens --> exception
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             // Extracting the token from the Authorization header
             token = authHeader.substring(7);
+            System.out.println("Token: " + token);
             // Extracting username from the token
             userName = jwtService.extractUserName(token);
         }
-        String path = request.getRequestURI();
-        if (path.startsWith("/api/auth/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+
+        System.out.println(token+" "+userName);
 
         // If username is extracted and there is no authentication in the current SecurityContext
         if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -58,8 +62,9 @@ public class JWTFilter extends OncePerRequestFilter {
             UserDetails userDetails = getUserService().loadUserByUsername(userName);
 
             // Validating the token with loaded UserDetails
-            //System.out.println("before validation");
-            if (jwtService.validateToken(token, userDetails)) {
+            System.out.println("before validation" );
+
+            if (jwtService.validateToken(token, userDetails) && tokenRepository.existsByToken(token)) {
                 //System.out.println("after validation");
                 // Creating an authentication token using UserDetails
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -70,7 +75,8 @@ public class JWTFilter extends OncePerRequestFilter {
             }
         }
 
-        // Proceeding with the filter chain
+        // Proceeding with the filter chain and it goes to controller
+        System.out.println("Filter ends Here");
         filterChain.doFilter(request, response);
     }
 

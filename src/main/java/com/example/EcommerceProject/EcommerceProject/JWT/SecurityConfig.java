@@ -55,7 +55,7 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable()) // Disable CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**")
+                        .requestMatchers("/api/auth/**","/users/images/**")
                         .permitAll()
                         .requestMatchers("/api/customer/**")
                         .hasAuthority("ROLE_CUSTOMER")
