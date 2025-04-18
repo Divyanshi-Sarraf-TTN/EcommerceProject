@@ -1,6 +1,7 @@
 package com.example.EcommerceProject.EcommerceProject.Entity.User;
 
 
+import com.example.EcommerceProject.EcommerceProject.Entity.Audit.AuditEntry;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
@@ -18,7 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Address {
+public class Address extends AuditEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -59,8 +60,8 @@ public class Address {
     @ManyToMany
     @JoinTable(
             name = "customer_address", // Junction table
-            joinColumns = @JoinColumn(name = "customer_id"),
-            inverseJoinColumns = @JoinColumn(name = "address_id")
+            joinColumns = @JoinColumn(name = "address_id"),
+            inverseJoinColumns = @JoinColumn(name = "customer_id")
 
     )
    private List<Customer> customers=new ArrayList<>();

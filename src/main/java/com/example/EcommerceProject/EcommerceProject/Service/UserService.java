@@ -5,6 +5,10 @@ import com.example.EcommerceProject.EcommerceProject.DTO.ForgotPasswordDTO;
 import com.example.EcommerceProject.EcommerceProject.DTO.ResetPasswordDTO;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.User;
+import com.example.EcommerceProject.EcommerceProject.Exception.ForbiddenAccessException;
+import com.example.EcommerceProject.EcommerceProject.Exception.MethodNotAllowedException;
+import com.example.EcommerceProject.EcommerceProject.Exception.ResourceNotFoundException;
+import com.example.EcommerceProject.EcommerceProject.Exception.UnauthorizedAccessException;
 import com.example.EcommerceProject.EcommerceProject.Repository.AddressRepository;
 import com.example.EcommerceProject.EcommerceProject.Repository.UserRepository;
 import com.example.EcommerceProject.EcommerceProject.Token.Token;
@@ -42,12 +46,12 @@ public class UserService {
         User user = (User) userRepository.findByEmail(forgotPasswordDTO.getEmail())
                 .orElseThrow(() -> {
                     logger.error("Email not found in DB: {}", forgotPasswordDTO.getEmail());
-                    return new IllegalArgumentException("Email should exist in db");
+                    return new ResourceNotFoundException("Email should exist in db");
                 });
 
         if (!user.isActive()) {
             logger.warn("Inactive user attempted to reset password: {}", forgotPasswordDTO.getEmail());
-            throw new RuntimeException("User is not active");
+            throw new ForbiddenAccessException("User is not active");
         }
 
         tokenRepository.deleteByEmail(forgotPasswordDTO.getEmail());
@@ -75,13 +79,13 @@ public class UserService {
 
         if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {
             logger.error("Passwords do not match");
-            throw new IllegalArgumentException("Passwords do not match");
+            throw new MethodNotAllowedException("Passwords do not match");
         }
 
         Token tokenEntity = tokenRepository.findByToken(resetPasswordDTO.getToken())
                 .orElseThrow(() -> {
                     logger.error("Invalid token used for password reset: {}", resetPasswordDTO.getToken());
-                    return new IllegalArgumentException("Invalid activation token");
+                    return new UnauthorizedAccessException("Invalid activation token");
                 });
 
         if (new Date().after(tokenEntity.getExpiresAt())) {
@@ -93,7 +97,7 @@ public class UserService {
         User user = (User) userRepository.findByEmail(tokenEntity.getEmail())
                 .orElseThrow(() -> {
                     logger.error("No user found for token email: {}", tokenEntity.getEmail());
-                    return new IllegalArgumentException("Invalid data");
+                    return new ResourceNotFoundException("Invalid data");
                 });
 
         user.setPassword(passwordEncoder.encode(resetPasswordDTO.getPassword()));
@@ -109,7 +113,8 @@ public class UserService {
 
         if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {
             logger.error("Passwords do not match");
-            return "Password do not match";
+            throw new MethodNotAllowedException("password do not match");
+            //return  "Password do not match";
         }
 
         Token token1 = tokenRepository.findByToken(token)
@@ -121,7 +126,7 @@ public class UserService {
         User user1 = (User) userRepository.findByEmail(token1.getEmail())
                 .orElseThrow(() -> {
                     logger.error("No user found with email: {}", token1.getEmail());
-                    return new RuntimeException("No user found in database with email");
+                    return new ResourceNotFoundException("No user found in database with email");
                 });
 
         user1.setPassword(passwordEncoder.encode(resetPasswordDTO.getPassword()));
@@ -137,7 +142,7 @@ public class UserService {
         Address address = addressRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.error("Address ID not found: {}", id);
-                    return new RuntimeException("Id does not exist");
+                    return new ResourceNotFoundException("Id does not exist");
                 });
 
         if (addressRequestDTO.getCity() != null && !addressRequestDTO.getCity().isBlank()) {

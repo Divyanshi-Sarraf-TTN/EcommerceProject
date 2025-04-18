@@ -27,7 +27,7 @@ public class CategoryMetaDataFieldValues {
     private Category category;
 
     @ManyToOne
-    @JoinColumn(name="categoryMetadataFieldValues")
+    @JoinColumn(name="categoryMetadataFieldId")
     private CategoryMetaDataField  categoryMetaDataField;
 
   public CategoryMetaDataFieldValues(Category category , CategoryMetaDataField categoryMetaDataField , String fieldValues)

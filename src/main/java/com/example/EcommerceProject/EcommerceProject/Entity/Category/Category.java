@@ -1,5 +1,6 @@
 package com.example.EcommerceProject.EcommerceProject.Entity.Category;
 
+import com.example.EcommerceProject.EcommerceProject.Entity.Audit.AuditEntry;
 import com.example.EcommerceProject.EcommerceProject.Entity.Product.Product;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Category {
+public class Category  extends AuditEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -26,10 +27,11 @@ public class Category {
 
     @ManyToOne
     @JoinColumn(name="parentCategoryId")
-    private Category category;
+    private Category parentCategory;
 
     @OneToMany(mappedBy = "category",cascade = CascadeType.ALL)
     private List<Product>products;
+
 
 
     @OneToMany(mappedBy = "category",cascade = CascadeType.ALL)

@@ -4,6 +4,9 @@ import com.example.EcommerceProject.EcommerceProject.DTO.*;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Customer;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
+import com.example.EcommerceProject.EcommerceProject.Exception.ForbiddenAccessException;
+import com.example.EcommerceProject.EcommerceProject.Exception.ResourceNotFoundException;
+import com.example.EcommerceProject.EcommerceProject.Exception.UserNotFoundException;
 import com.example.EcommerceProject.EcommerceProject.Repository.*;
 import com.example.EcommerceProject.EcommerceProject.Token.Token;
 import com.example.EcommerceProject.EcommerceProject.Token.TokenRepository;
@@ -58,22 +61,22 @@ public class CustomerService {
 
         if (sellerRepository.existsByEmail(email) || adminRepository.existsByEmail(email)) {
             logger.warn("Email already registered in another role: {}", email);
-            throw new IllegalArgumentException("Email id already registered");
+            throw new ForbiddenAccessException("Email id already registered");
         }
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             logger.warn("Passwords do not match for email: {}", email);
-            throw new IllegalArgumentException("Passwords do not match");
+            throw new ForbiddenAccessException("Passwords do not match");
         }
 
         if (customerRepository.findByEmail(email).isPresent()) {
             logger.warn("Customer already exists with email: {}", email);
-            throw new IllegalArgumentException("Email id already registered");
+            throw new ForbiddenAccessException("Email id already registered");
         }
 
         if (customerRepository.findByContact(request.getContact()).isPresent()) {
             logger.warn("Duplicate contact for email: {}", email);
-            throw new IllegalArgumentException("Contact Number is duplicate");
+            throw new ForbiddenAccessException("Contact Number is duplicate");
         }
 
         Customer customer = new Customer();
@@ -90,7 +93,7 @@ public class CustomerService {
         Role role = roleRepository.findByAuthority("ROLE_CUSTOMER")
                 .orElseThrow(() -> {
                     logger.error("Customer role not found in DB");
-                    return new RuntimeException("Role not found");
+                    return new ResourceNotFoundException("Role not found");
                 });
 
         customer.setRole(role);
@@ -141,7 +144,7 @@ public class CustomerService {
         Token tokenEntity = tokenRepository.findByToken(token)
                 .orElseThrow(() -> {
                     logger.error("Invalid activation token: {}", token);
-                    return new IllegalArgumentException("Invalid activation token");
+                    return new ResourceNotFoundException("Invalid activation token");
                 });
 
         if (new Date().after(tokenEntity.getExpiresAt())) {
@@ -158,7 +161,7 @@ public class CustomerService {
         }
 
         Customer customer = (Customer) customerRepository.findByEmail(tokenEntity.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("No account found for token"));
+                .orElseThrow(() -> new ResourceNotFoundException("No account found for token"));
 
         customer.setActive(true);
         customerRepository.save(customer);
@@ -171,11 +174,11 @@ public class CustomerService {
     public String resendactivate(String email) throws MessagingException {
         logger.info("Resending activation email to: {}", email);
         Customer customer = (Customer) customerRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Email not registered"));
+                .orElseThrow(() -> new ResourceNotFoundException("Email not registered"));
 
         if (customer.isActive()) {
             logger.warn("Customer already active: {}", email);
-            throw new RuntimeException("Customer already active");
+            throw new ForbiddenAccessException("Customer already active");
         }
 
         tokenRepository.deleteByEmail(email);
@@ -192,10 +195,10 @@ public class CustomerService {
     public CustomerProfileResponseDTO viewProfileOfCustomer(String token) throws MessagingException {
         logger.info("Viewing customer profile using token: {}", token);
         Token token1 = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 
         Customer customer = (Customer) customerRepository.findByEmail(token1.getEmail())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         CustomerProfileResponseDTO dto = new CustomerProfileResponseDTO();
         dto.setId(customer.getId());
@@ -218,10 +221,10 @@ public class CustomerService {
     public List<AddressResponseDTO> viewAddressesOfCustomer(String token) throws MessagingException {
         logger.info("Fetching addresses for customer token: {}", token);
         Token token1 = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 
         Customer customer = (Customer) customerRepository.findByEmail(token1.getEmail())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         return customer.getAddresses().stream()
                 .filter(addr -> !addr.getIsDeleted())
@@ -241,10 +244,10 @@ public class CustomerService {
     public String updateCustomerProfile(String token, CustomerRequestDTO customerRequestDTO) throws MessagingException {
         logger.info("Updating customer profile using token: {}", token);
         Token token1 = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 
         Customer customer = (Customer) customerRepository.findByEmail(token1.getEmail())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         if (customerRequestDTO.getFirstName() != null && !customerRequestDTO.getFirstName().isBlank()) {
             customer.setFirstName(customerRequestDTO.getFirstName());
@@ -267,10 +270,10 @@ public class CustomerService {
     public String addAddress(String token, AddressRequestDTO addressRequestDTO) {
         logger.info("Adding address for customer token: {}", token);
         Token token1 = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 
         Customer customer = (Customer) customerRepository.findByEmail(token1.getEmail())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         Address address = new Address();
         address.setAddressLine(addressRequestDTO.getAddressLine());
@@ -292,17 +295,17 @@ public class CustomerService {
     public String deleteAddress(String token, Long id) {
         logger.info("Deleting address ID: {} using token: {}", id, token);
         Token token1 = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 
         Customer customer = (Customer) customerRepository.findByEmail(token1.getEmail())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         Address address = addressRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Address not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Address not found"));
 
         if (!customer.getAddresses().contains(address)) {
             logger.warn("Address ID {} not linked to customer ID: {}", id, customer.getId());
-            throw new RuntimeException("No address linked to this customer");
+            throw new ForbiddenAccessException("No address linked to this customer");
         }
 
         address.setIsDeleted(true);

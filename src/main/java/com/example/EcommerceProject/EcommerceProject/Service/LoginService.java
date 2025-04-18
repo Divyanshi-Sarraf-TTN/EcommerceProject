@@ -2,6 +2,9 @@ package com.example.EcommerceProject.EcommerceProject.Service;
 
 import com.example.EcommerceProject.EcommerceProject.DTO.LoginRequestDTO;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.User;
+import com.example.EcommerceProject.EcommerceProject.Exception.ForbiddenAccessException;
+import com.example.EcommerceProject.EcommerceProject.Exception.ResourceNotFoundException;
+import com.example.EcommerceProject.EcommerceProject.Exception.UnauthorizedAccessException;
 import com.example.EcommerceProject.EcommerceProject.JWT.JWTService;
 import com.example.EcommerceProject.EcommerceProject.JWT.JwtAuthenticationManager;
 import com.example.EcommerceProject.EcommerceProject.JWT.SecurityUserService;
@@ -54,7 +57,7 @@ public class LoginService {
         User user = (User) userRepository.findByEmail(loginRequestDTO.getEmail())
                 .orElseThrow(() -> {
                     logger.error("Login failed: email {} not registered", loginRequestDTO.getEmail());
-                    return new IllegalArgumentException("Email is not registered");
+                    return new ResourceNotFoundException("Email is not registered");
                 });
 
         Authentication authentication = jwtAuthenticationManager.authenticate(
@@ -96,12 +99,12 @@ public class LoginService {
         Token storedToken = tokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> {
                     logger.error("Invalid Refresh Token: Token not found in DB");
-                    return new RuntimeException("Invalid Refresh Token");
+                    return new UnauthorizedAccessException("Invalid Refresh Token");
                 });
 
         if (!storedToken.isValid()) {
             logger.warn("Refresh Token is invalid or expired");
-            throw new RuntimeException("Refresh Token expired or revoked");
+            throw new ForbiddenAccessException("Refresh Token expired or revoked");
         }
 
         String username = jwtService.extractUserName(refreshToken);
@@ -109,7 +112,7 @@ public class LoginService {
 
         if (!jwtService.validateToken(refreshToken, userDetails)) {
             logger.error("Invalid Refresh Token signature or expiration for user: {}", username);
-            throw new RuntimeException("Invalid Refresh Token Signature or Expired");
+            throw new UnauthorizedAccessException("Invalid Refresh Token Signature or Expired");
         }
 
         logger.info("Refresh token validated for user: {}", username);
@@ -117,7 +120,7 @@ public class LoginService {
         Token oldAccessToken = tokenRepository.findAccessTokenByPair(storedToken.getPair())
                 .orElseThrow(() -> {
                     logger.error("Old Access Token not found for token pair: {}", storedToken.getPair());
-                    return new RuntimeException("Invalid Token");
+                    return new ResourceNotFoundException("Invalid Token");
                 });
 
         oldAccessToken.setIsDeleted(true);
@@ -127,7 +130,7 @@ public class LoginService {
         User user = (User) userRepository.findByEmail(username)
                 .orElseThrow(() -> {
                     logger.error("User not found by email: {}", username);
-                    return new RuntimeException("User does not exist");
+                    return new ResourceNotFoundException("User does not exist");
                 });
 
         Date accessExpiry = new Date(System.currentTimeMillis() + 15 * 60 * 1000);
@@ -151,7 +154,7 @@ public class LoginService {
         Token token = tokenRepository.findByToken(accessToken)
                 .orElseThrow(() -> {
                     logger.error("Access Token not found: {}", accessToken);
-                    return new IllegalArgumentException("Invalid Token");
+                    return new UnauthorizedAccessException("Invalid Token");
                 });
 
         if (!token.isValid()) {
@@ -164,7 +167,7 @@ public class LoginService {
         Token refreshToken = tokenRepository.findValidRefreshTokenByEmailAndPair(email, token.getPair())
                 .orElseThrow(() -> {
                     logger.error("Refresh Token not found for user: {}", email);
-                    return new RuntimeException("Refresh Token not found");
+                    return new ResourceNotFoundException("Refresh Token not found");
                 });
 
         token.setIsDeleted(true);

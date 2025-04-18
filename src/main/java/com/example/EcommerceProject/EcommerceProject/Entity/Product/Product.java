@@ -1,6 +1,7 @@
 package com.example.EcommerceProject.EcommerceProject.Entity.Product;
 
 //import com.example.EcommerceProject.EcommerceProject.Entity.Category.Category;
+import com.example.EcommerceProject.EcommerceProject.Entity.Audit.AuditEntry;
 import com.example.EcommerceProject.EcommerceProject.Entity.Category.Category;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Seller;
 import jakarta.persistence.*;
@@ -16,7 +17,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Entity
-public class Product {
+public class Product extends AuditEntry {
     @Id
     private Long id;
     @NotBlank(message = "Name is required")

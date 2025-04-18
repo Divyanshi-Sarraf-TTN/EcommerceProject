@@ -4,6 +4,8 @@ import com.example.EcommerceProject.EcommerceProject.DTO.*;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Seller;
+import com.example.EcommerceProject.EcommerceProject.Exception.MethodNotAllowedException;
+import com.example.EcommerceProject.EcommerceProject.Exception.ResourceNotFoundException;
 import com.example.EcommerceProject.EcommerceProject.Repository.*;
 import com.example.EcommerceProject.EcommerceProject.Token.Token;
 import com.example.EcommerceProject.EcommerceProject.Token.TokenRepository;
@@ -59,34 +61,34 @@ public class SellerService {
 
         if (customerRepository.existsByEmail(email) || adminRepository.existsByEmail(email)) {
             logger.warn("Email already registered: {}", email);
-            throw new IllegalArgumentException("Email id already registered");
+            throw new MethodNotAllowedException("Email id already registered");
         }
 
         if (!sellerRequestDto.getConfirmPassword().equals(sellerRequestDto.getPassword())) {
             logger.warn("Password mismatch for email: {}", email);
-            throw new IllegalArgumentException("Password Doesn't Match");
+            throw new MethodNotAllowedException("Password Doesn't Match");
         }
 
         if (sellerRepository.findByEmail(email).isPresent()) {
             logger.warn("Email already exists in seller table: {}", email);
-            throw new IllegalArgumentException("Email id already registered");
+            throw new MethodNotAllowedException("Email id already registered");
         }
 
         if (sellerRepository.findByGst(sellerRequestDto.getGst()).isPresent()) {
             logger.warn("Duplicate GST detected: {}", sellerRequestDto.getGst());
-            throw new IllegalArgumentException("Gst should be unique");
+            throw new MethodNotAllowedException("Gst should be unique");
         }
 
         if (sellerRepository.findByCompanyName(sellerRequestDto.getCompanyName()).isPresent()) {
             logger.warn("Duplicate company name detected: {}", sellerRequestDto.getCompanyName());
-            throw new IllegalArgumentException("CompanyName should be unique");
+            throw new MethodNotAllowedException("CompanyName should be unique");
         }
 
         Seller seller = new Seller();
         BeanUtils.copyProperties(sellerRequestDto, seller);
 
         Role role = roleRepository.findByAuthority("ROLE_SELLER")
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
         seller.setRole(role);
         seller.setPassword(passwordEncoder.encode(sellerRequestDto.getPassword()));
         seller.setActive(false);
@@ -124,8 +126,8 @@ public class SellerService {
 
     public SellerProfileResponseDTO viewSellerProfile(String token) {
         logger.info("Viewing seller profile for token: {}", token);
-        Token token1 = tokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("No token found"));
-        Seller seller1 = sellerRepository.findByEmail(token1.getEmail()).orElseThrow(() -> new RuntimeException("No seller found"));
+        Token token1 = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("No token found"));
+        Seller seller1 = sellerRepository.findByEmail(token1.getEmail()).orElseThrow(() -> new ResourceNotFoundException("No seller found"));
 
         SellerProfileResponseDTO sellerProfileResponseDTO = new SellerProfileResponseDTO();
         sellerProfileResponseDTO.setId(seller1.getId());
@@ -142,8 +144,8 @@ public class SellerService {
 
     public String updateSellerProfile(String token, SellerRequestDTO sellerRequestDTO) {
         logger.info("Updating seller profile for token: {}", token);
-        Token token1 = tokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("No token found"));
-        Seller seller1 = sellerRepository.findByEmail(token1.getEmail()).orElseThrow(() -> new RuntimeException("No seller found with email"));
+        Token token1 = tokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException("No token found"));
+        Seller seller1 = sellerRepository.findByEmail(token1.getEmail()).orElseThrow(() -> new ResourceNotFoundException("No seller found with email"));
 
         if (sellerRequestDTO.getFirstName() != null && !sellerRequestDTO.getFirstName().isBlank()) {
             seller1.setFirstName(sellerRequestDTO.getFirstName());
@@ -157,7 +159,7 @@ public class SellerService {
 
         if (!listOfErrors.isEmpty()) {
             logger.warn("Validation errors during profile update: {}", listOfErrors);
-            throw new RuntimeException("" + listOfErrors.toString());
+            throw new MethodNotAllowedException("" + listOfErrors.toString());
         }
 
         if (sellerRequestDTO.getLastName() != null && !sellerRequestDTO.getLastName().isBlank()) {
