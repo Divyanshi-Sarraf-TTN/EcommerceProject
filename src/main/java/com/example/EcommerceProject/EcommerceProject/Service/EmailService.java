@@ -1,10 +1,13 @@
 package com.example.EcommerceProject.EcommerceProject.Service;
 
+import com.example.EcommerceProject.EcommerceProject.Entity.Product.Product;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +30,17 @@ public class EmailService {
         helper.setFrom("divyanshi.sarraf@tothenew.com");
         mailSender.send(message);
         logger.info("Email successfully sent to: {}", to);
+    }
+    @Async
+    public void sendProductActivateToAdmin(Product product){
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo("divyanshi.sarraf@tothenew.com");
+        message.setSubject("New Product Awaiting Approval");
+        message.setText("A new product has been added by seller: "+"\n\n" +
+                "Product Name: " + product.getName() + "\n" +
+                "Brand: " + product.getBrand() + "\n" +
+                "Please review and activate the product.");
+        mailSender.send(message);
     }
 }
 
