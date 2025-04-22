@@ -152,6 +152,18 @@ public class AdminController {
     public ResponseEntity<String> updateCategory(@Valid @RequestBody UpdateCategoryRequestDTO dto) {
         return ResponseEntity.ok(adminService.updateCategory(dto));
     }
+    @PostMapping("/categorymetadatavalues")
+    public ResponseEntity<String> addMetadataValues(@RequestBody CategoryMetaDataFieldValueRequest request)
+    {
+        adminService.addCategoryMetaDataFieldValues(request);
+        return ResponseEntity.ok("Category metadata field values added successfully!");
+    }
+    @PutMapping("/updatecategorymetadatavalues")
+    public ResponseEntity<String> updateMetadataValues(@RequestBody CategoryMetaDataFieldValueRequest request)
+    {
+        adminService.updateCategoryMetaDataFieldValues(request);
+        return ResponseEntity.ok("Category metadata field values updated successfully!");
+    }
 
 
 

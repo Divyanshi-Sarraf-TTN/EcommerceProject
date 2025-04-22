@@ -1,6 +1,7 @@
 package com.example.EcommerceProject.EcommerceProject.Service;
 
 import com.example.EcommerceProject.EcommerceProject.DTO.*;
+import com.example.EcommerceProject.EcommerceProject.Entity.Category.Category;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Customer;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
@@ -52,6 +53,8 @@ public class CustomerService {
 
     @Autowired
     private AddressRepository addressRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Transactional
     public String registerCustomer(CustomerRequestDTO request) throws MessagingException {
@@ -313,5 +316,36 @@ public class CustomerService {
         logger.info("Address marked as deleted for customer ID: {}", customer.getId());
 
         return "Address deleted successfully";
+    }
+    public List<SameLevelCategory> getSameLevelCategories(Long categoryId) {
+        List<Category> categories;
+
+        // Case 1: If no ID is passed, return all root-level categories
+        if (categoryId == null) {
+            categories = categoryRepository.findByParentCategoryIsNull();
+        }
+        // Case 2: If ID is passed, return all immediate children
+        else {
+            Category parentCategory = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category with ID " + categoryId + " not found"));
+            categories = categoryRepository.findByParentCategory(parentCategory);
+        }
+
+        // Convert entities to DTOs
+        List<SameLevelCategory> response = new ArrayList<>();
+        for (Category category : categories) {
+            SameLevelCategory dto = new SameLevelCategory();
+            dto.setId(category.getId());
+            dto.setName(category.getName());
+
+            // Set parentId only if it exists
+            if (category.getParentCategory() != null) {
+                dto.setParentId(category.getParentCategory().getId());
+            }
+
+            response.add(dto);
+        }
+
+        return response;
     }
 }

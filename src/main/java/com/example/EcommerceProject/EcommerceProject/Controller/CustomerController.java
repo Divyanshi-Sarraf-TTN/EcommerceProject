@@ -9,6 +9,7 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
+import org.aspectj.lang.annotation.RequiredTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -104,5 +105,12 @@ public class CustomerController {
             token=token.substring(7);
         }else throw new BadRequestException("Token not found");
         return ResponseEntity.ok(customerService.deleteAddress(token,id));
+    }
+    @GetMapping("/viewSameLevelCategory")
+    @PreAuthorize("hasAuthority('ROLE_CUSTOMER')")
+    public ResponseEntity<List<SameLevelCategory>> viewLeafCategory(@RequestParam(required = false)  Long id)
+    {
+
+        return ResponseEntity.ok(customerService.getSameLevelCategories(id));
     }
 }

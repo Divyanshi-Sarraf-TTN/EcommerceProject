@@ -1,6 +1,8 @@
 package com.example.EcommerceProject.EcommerceProject.Service;
 
 import com.example.EcommerceProject.EcommerceProject.DTO.*;
+import com.example.EcommerceProject.EcommerceProject.Entity.Category.Category;
+import com.example.EcommerceProject.EcommerceProject.Entity.Category.CategoryMetaDataFieldValues;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Seller;
@@ -53,6 +55,10 @@ public class SellerService {
 
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private CategoryMetaFieldValueRepository categoryMetaFieldValueRepository;
 
     public String registerSeller(SellerRequestDTO sellerRequestDto) throws MessagingException {
         logger.info("Registering seller with email: {}", sellerRequestDto.getEmail());
@@ -181,5 +187,45 @@ public class SellerService {
         sellerRepository.save(seller1);
         logger.info("Seller profile updated successfully for email: {}", seller1.getEmail());
         return "Profile updated successfully";
+    }
+    public List<ViewLeafCategory> viewLeafCategory() {
+        List<Category> categories = categoryRepository.findAll();
+        List<ViewLeafCategory> response = new ArrayList<>();
+        for (Category category : categories) {
+            if (categoryRepository.findByParentCategory(category).isEmpty()) {
+                ViewLeafCategory viewLeafCategory = new ViewLeafCategory();
+                viewLeafCategory.setCategoryId(category.getId());
+                viewLeafCategory.setCategoryName(category.getName());
+                viewLeafCategory.setParentHierarchy(getParentCategories(category));
+                viewLeafCategory.setMetadataFields(getMetaFields(category));
+                response.add(viewLeafCategory);
+            }
+        }
+        return response;
+    }
+    private List<BasicCategory> getParentCategories(Category category) {
+        // Logic to fetch parent categories
+        List<BasicCategory>parentCategories=new ArrayList<>();
+        //if no parent
+        if(category.getParentCategory()==null){
+            return parentCategories;
+        }
+        Category currentCategory=category.getParentCategory();
+        while(currentCategory!=null)
+        {
+            parentCategories.add(new BasicCategory(currentCategory.getId(),currentCategory.getName()));
+            currentCategory=currentCategory.getParentCategory();
+        }
+        return parentCategories;
+    }
+    private List<MetadataFieldWithValues> getMetaFields(Category category) {
+        // Logic to fetch metadata fields
+        List<MetadataFieldWithValues>metadataFields=new ArrayList<>();
+        List<CategoryMetaDataFieldValues>metaFieldValues=categoryMetaFieldValueRepository.findByCategory(category);
+        for(CategoryMetaDataFieldValues metaFieldValue:metaFieldValues){
+            metadataFields.add(new MetadataFieldWithValues(metaFieldValue.getCategoryMetaDataField().getName(),metaFieldValue.getFieldValues()));
+
+        }
+        return metadataFields;
     }
 }

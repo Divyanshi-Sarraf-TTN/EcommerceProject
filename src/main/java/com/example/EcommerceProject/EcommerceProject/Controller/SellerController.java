@@ -1,8 +1,10 @@
 package com.example.EcommerceProject.EcommerceProject.Controller;
 
 
+import com.example.EcommerceProject.EcommerceProject.DTO.CategoryMetaDataFieldValueRequest;
 import com.example.EcommerceProject.EcommerceProject.DTO.SellerProfileResponseDTO;
 import com.example.EcommerceProject.EcommerceProject.DTO.SellerRequestDTO;
+import com.example.EcommerceProject.EcommerceProject.DTO.ViewLeafCategory;
 import com.example.EcommerceProject.EcommerceProject.Service.LoginService;
 import com.example.EcommerceProject.EcommerceProject.Service.SellerService;
 import jakarta.mail.MessagingException;
@@ -13,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -54,6 +58,13 @@ public class SellerController {
             token=token.substring(7);
         }else throw new BadRequestException("Token not found");
         return ResponseEntity.ok(sellerService.updateSellerProfile(token, sellerRequestDTO));
+    }
+    @GetMapping("/viewLeafCategory")
+    @PreAuthorize("hasAuthority('ROLE_SELLER')")
+    public ResponseEntity<List<ViewLeafCategory>> viewLeafCategory()
+    {
+        sellerService.viewLeafCategory();
+        return ResponseEntity.ok(sellerService.viewLeafCategory());
     }
 
 }

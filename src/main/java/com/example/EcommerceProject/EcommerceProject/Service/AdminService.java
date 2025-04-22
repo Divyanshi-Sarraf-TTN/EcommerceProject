@@ -4,6 +4,7 @@ import com.example.EcommerceProject.EcommerceProject.DTO.*;
 import com.example.EcommerceProject.EcommerceProject.Entity.Category.Category;
 import com.example.EcommerceProject.EcommerceProject.Entity.Category.CategoryMetaDataField;
 import com.example.EcommerceProject.EcommerceProject.Entity.Category.CategoryMetaDataFieldValues;
+import com.example.EcommerceProject.EcommerceProject.Entity.Category.CategoryMetaDataFieldValuesID;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Customer;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Seller;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.User;
@@ -13,6 +14,7 @@ import com.example.EcommerceProject.EcommerceProject.Exception.ResourceNotFoundE
 import com.example.EcommerceProject.EcommerceProject.Exception.UserNotFoundException;
 import com.example.EcommerceProject.EcommerceProject.Repository.*;
 import jakarta.mail.MessagingException;
+import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -25,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class AdminService {
@@ -319,6 +318,105 @@ private boolean isNamePresentInSiblingsOrAncestors(String name, Category parent,
         categoryRepository.save(categoryToUpdate);
         return "Category updated successfully!!";
     }
+
+    public void addCategoryMetaDataFieldValues(CategoryMetaDataFieldValueRequest request) {
+        Long categoryId= request.getCategoryId();
+        System.out.println("Id"+categoryId);
+        //check categoryid exist or not
+        Category category=categoryRepository.findById(categoryId).orElseThrow(()->new ResourceNotFoundException("category not found"));
+        for(CategoryMetaDataFieldValueRequest.FieldValuePair pair:request.getFieldValuePairs())
+        {
+            Long fieldId=pair.getMetadataFieldId();
+            //find metadatafield exist or not
+            CategoryMetaDataField metaField=categoryMetaDataFieldRepository.findById(fieldId).orElseThrow(()->new ResourceNotFoundException("meta data field not found"));
+
+            List<String>values=pair.getValues();
+            //if we give empty list
+            if(values==null||values.isEmpty())
+            {
+                throw new ResourceNotFoundException("At least one value is required for field ID:"+fieldId);
+
+            }
+            //
+            Set<String> uniqueValues=new HashSet<>(values);
+            //if we duplicate values in list
+             if(uniqueValues.size()!= values.size())
+             {
+                 throw new ForbiddenAccessException("Duplicate values found for fieldId:"+fieldId);
+
+             }
+             String concatenatedValues=String.join(",",uniqueValues);
+
+
+             CategoryMetaDataFieldValues cmfv=new CategoryMetaDataFieldValues(category,metaField,concatenatedValues);
+
+
+
+            boolean exists = categoryMetaFieldValueRespository.existsByCategoryAndCategoryMetaDataField(category, metaField);
+            //if already exist in db the particular value for particular category and field
+            if (exists) {
+                throw new ForbiddenAccessException("Metadata values for this field already exist for this category.");
+            }
+
+             categoryMetaFieldValueRespository.save(cmfv);
+        }
+    }
+    public void updateCategoryMetaDataFieldValues(CategoryMetaDataFieldValueRequest request)
+    {
+        Long categoryId= request.getCategoryId();
+        Category category=categoryRepository.findById(request.getCategoryId()).orElseThrow(()->new ResourceNotFoundException("no category found"));
+        for(CategoryMetaDataFieldValueRequest.FieldValuePair pair:request.getFieldValuePairs())
+        {
+            Long fieldId= pair.getMetadataFieldId();
+            List<String> values=pair.getValues();
+            if(values==null||values.isEmpty())
+            {
+                throw new ResourceNotFoundException("At least one value is required");
+
+            }
+            //check for duplicates in input list
+            Set<String> uniqueValues = new HashSet<>(values);
+            if (uniqueValues.size() != values.size()) {
+                throw new ValidationException("Duplicate values found for field ID: " + fieldId);
+            }
+
+
+            CategoryMetaDataField categoryMetaDataField=categoryMetaDataFieldRepository.findById(fieldId).orElseThrow(()->new ResourceNotFoundException("no metafield id found"));
+            //ensure this category-field combination exists
+            boolean alreadyExists = categoryMetaFieldValueRespository
+                    .existsByCategoryAndCategoryMetaDataField(category, categoryMetaDataField);
+
+            if (!alreadyExists) {
+                throw new ValidationException("Field ID " + fieldId + " is not associated with Category ID " + categoryId);
+            }
+            //update existing fieldvalues
+            CategoryMetaDataFieldValuesID compositeKey =
+                    new CategoryMetaDataFieldValuesID(categoryId, fieldId);
+
+            CategoryMetaDataFieldValues existingEntry = categoryMetaFieldValueRespository
+                    .findByCategoryAndCategoryMetaDataField(category,categoryMetaDataField)
+                    .orElseThrow(() -> new ResourceNotFoundException("Entry not found for update"));
+
+            // Check for duplicates with existing values
+            String existing = existingEntry.getFieldValues(); // e.g., "red,blue,green"
+            List<String> existingList = Arrays.asList(existing.split(","));
+
+            for (String newValue : values) {
+                if (existingList.contains(newValue.trim())) {
+                    throw new ValidationException("Value '" + newValue + "' already exists for field ID " + fieldId + " in category ID " + categoryId);
+                }
+            }
+
+            // Merge existing + new values and update
+            Set<String> merged = new LinkedHashSet<>(existingList);
+            merged.addAll(values);
+            System.out.println(merged);
+            existingEntry.setFieldValues(String.join(",", merged));
+            categoryMetaFieldValueRespository.save(existingEntry);
+        }
+    }
+
+
 
 }
 
