@@ -63,7 +63,7 @@ public class SecurityConfig {
                         .hasAuthority("ROLE_SELLER")
                         .requestMatchers("/api/admin/**","/admin/access/**")
                         .hasAuthority("ROLE_ADMIN")
-                        .anyRequest().authenticated()) // Allow all requests
+                        .anyRequest().permitAll()) // Allow all requests
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

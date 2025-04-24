@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
@@ -23,4 +25,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     Optional<Object> findByIdAndIsDeletedFalse(Long productId);
 
     boolean existsByNameAndBrandAndCategoryAndSeller(String name, @NotBlank(message = "Brand is required") @Size(min = 2, max = 100, message = "Brand must be between 2 and 100 characters") String brand, Category category, Seller seller);
+
+    Optional<Product> findByIdAndIsDeletedFalseAndIsActiveTrue(Long productId);
+
+    Page<Product> findAllByCategoryIdInAndIsDeletedFalseAndIsActiveTrue(List<Long> categoryIds, Pageable pageable);
 }

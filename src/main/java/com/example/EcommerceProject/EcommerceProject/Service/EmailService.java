@@ -42,5 +42,41 @@ public class EmailService {
                 "Please review and activate the product.");
         mailSender.send(message);
     }
+    public void sendProductActivationUpdateToSeller(Product product) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(product.getSeller().getEmail());
+        message.setSubject("Product Activation Status Update");
+
+
+
+        message.setText("Hello " + product.getSeller().getFirstName() + ",\n\n" +
+                "Your product has been " + "Activated" + ".\n\n" +
+                "Product Details:\n" +
+                "Name: " + product.getName() + "\n" +
+                "Brand: " + product.getBrand() + "\n" +
+                "Category: " + product.getCategory().getName() + "\n" +
+                "Status: " + "Activated" + "\n\n"
+               );
+
+        mailSender.send(message);
+    }
+    public void sendProductDeActivationUpdateToSeller(Product product) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(product.getSeller().getEmail());
+        message.setSubject("Product DeActivation Status Update");
+
+
+
+        message.setText("Hello " + product.getSeller().getFirstName() + ",\n\n" +
+                "Your product has been " + "DeActivated" + ".\n\n" +
+                "Product Details:\n" +
+                "Name: " + product.getName() + "\n" +
+                "Brand: " + product.getBrand() + "\n" +
+                "Category: " + product.getCategory().getName() + "\n" +
+                "Status: " + "DeActivated" + "\n\n"
+        );
+
+        mailSender.send(message);
+    }
 }
 

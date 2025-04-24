@@ -3,13 +3,16 @@ package com.example.EcommerceProject.EcommerceProject.Entity.Product;
 //import com.example.EcommerceProject.EcommerceProject.Entity.Cart.Cart;
 import com.example.EcommerceProject.EcommerceProject.Entity.Cart.Cart;
 import com.example.EcommerceProject.EcommerceProject.Entity.Order.OrderProduct;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -17,6 +20,7 @@ import java.util.List;
 @Entity
 public class ProductVariation {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     @NotNull(message = "Quantity Available is required")
     @Min(value = 1, message = "Quantity must be at least 1")
@@ -30,7 +34,12 @@ public class ProductVariation {
     @Size(min = 3, max = 255, message = "Image name must be between 3 and 255 characters")
     private String PrimaryImageName;
 
-    private boolean isActive; // No validation needed for boolean fields
+    private boolean isActive;
+    // No validation needed for boolean fields
+
+    @Type(JsonType.class)
+    @Column(columnDefinition = "json")
+    private Map<String, Object> metadata;
 
     @ManyToOne
     @JoinColumn(name="productID")
