@@ -17,10 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -686,7 +683,91 @@ public class ProductService {
         return "De-Activate Successfully";
     }
 
+    public Page<AllProductResponse> getAllActiveProductsByAdmin(Integer max, Integer offset, String sort, String order, Long categoryId, Long sellerId) {
+        Sort.Direction direction = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(offset, max, Sort.by(direction, sort));
+
+        Page<Product> page = productRepository.findFilteredProducts(categoryId, sellerId, pageable);
+        List<AllProductResponse> productResponses = new ArrayList<>();
+
+        for (Product product : page.getContent()) {
+            AllProductResponse dto = new AllProductResponse();
+            dto.setId(product.getId());
+            dto.setName(product.getName());
+            dto.setBrand(product.getBrand());
+            dto.setSellerId(product.getSeller().getId());
+
+            // Set category details
+            Category category = product.getCategory();
+            CategoryDTO categoryDTO = new CategoryDTO();
+            categoryDTO.setId(category.getId());
+            categoryDTO.setName(category.getName());
+            if (category.getParentCategory() != null) {
+                categoryDTO.setParentCategoryId(category.getParentCategory().getId());
+            }
+            dto.setCategory(categoryDTO);
+
+            // Set variation images
+            List<String> primaryImages = new ArrayList<>();
+            for (ProductVariation variation : product.getProductVariations()) {
+                if (variation.getPrimaryImageName() != null) {
+                    primaryImages.add(variation.getPrimaryImageName());
+                }
+            }
+            dto.setVariationPrimaryImages(primaryImages);
+
+            productResponses.add(dto);
+        }
+
+        return new PageImpl<>(productResponses, pageable, page.getTotalElements());
     }
+    public Page<ProductSummaryDTO> getSimilarProducts(Long productId, int max, int offset, String sort, String order, String query) {
+        Product currentProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid product ID"));
+
+        Category category = currentProduct.getCategory();
+
+        Sort.Direction direction = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(offset, max, Sort.by(direction, sort));
+
+        Page<Product> similarProducts;
+
+        if (query != null && !query.isBlank()) {
+            similarProducts = productRepository
+                    .findByCategoryAndIdNotAndIsDeletedFalseAndIsActiveTrueAndNameContainingIgnoreCaseOrBrandContainingIgnoreCase(
+                            category, productId, query, query, pageable);
+        } else {
+            similarProducts = productRepository
+                    .findByCategoryAndIdNotAndIsDeletedFalseAndIsActiveTrue(category, productId, pageable);
+        }
+        System.out.println(similarProducts.getContent());
+
+
+        return similarProducts.map(product -> {
+            String primaryImage = product.getProductVariations().stream()
+                    .filter(ProductVariation::isActive)
+                    .map(ProductVariation::getPrimaryImageName)
+                    .findFirst().orElse(null);
+
+            Double minPrice = product.getProductVariations().stream()
+                    .filter(ProductVariation::isActive)
+                    .map(ProductVariation::getPrice)
+                    .min(Double::compare)
+                    .orElse(0.0);
+
+            return new ProductSummaryDTO(
+                    product.getId(),
+                    product.getName(),
+                    product.getBrand(),
+                    minPrice,
+                    product.getCategory().getName(),
+                    primaryImage
+            );
+        });
+    }
+
+}
+
 
 
 

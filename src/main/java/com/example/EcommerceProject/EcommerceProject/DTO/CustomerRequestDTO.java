@@ -23,6 +23,10 @@ public class CustomerRequestDTO {
     private String lastName;
 
     @Email(message = "Invalid email format")
+    @Pattern(
+            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+            message = "Invalid email format"
+    )
     @NotBlank(message = "Email is required")
     private String email;
 
@@ -41,6 +45,7 @@ public class CustomerRequestDTO {
 
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
+    @Valid
     private AddressRequestDTO address;
 
 }

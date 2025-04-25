@@ -8,10 +8,13 @@ import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
     boolean existsByCategory_Id(Long categoryId);
@@ -29,4 +32,31 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     Optional<Product> findByIdAndIsDeletedFalseAndIsActiveTrue(Long productId);
 
     Page<Product> findAllByCategoryIdInAndIsDeletedFalseAndIsActiveTrue(List<Long> categoryIds, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.isDeleted = false " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+            "AND (:sellerId IS NULL OR p.seller.id = :sellerId)")
+    Page<Product> findFilteredProducts(
+            @Param("categoryId") Long categoryId,
+            @Param("sellerId") Long sellerId,
+            Pageable pageable
+    );
+
+
+    Page<Product> findByCategoryIdAndIdNotAndIsDeletedFalseAndIsActiveTrueAndNameContainingIgnoreCase(Long categoryId, Long productId, String query, Pageable pageable);
+
+    Page<Product> findByCategoryIdAndIdNotAndIsDeletedFalseAndIsActiveTrue(Long categoryId, Long productId, Pageable pageable);
+    Page<Product> findByCategoryAndIdNotAndIsDeletedFalseAndIsActiveTrueAndNameContainingIgnoreCaseOrBrandContainingIgnoreCase(
+            Category category,
+            Long excludedProductId,
+            String nameQuery,
+            String brandQuery,
+            Pageable pageable
+    );
+    Page<Product> findByCategoryAndIdNotAndIsDeletedFalseAndIsActiveTrue(
+            Category category,
+            Long excludedProductId,
+            Pageable pageable
+    );
+
+
 }

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface VariationRepository extends JpaRepository<ProductVariation,Long> {
@@ -19,4 +20,6 @@ public interface VariationRepository extends JpaRepository<ProductVariation,Long
     Page<ProductVariation> findByProductId(Long productId, Pageable pageable);
 
     List<ProductVariation> findByProductIdAndIsActiveTrue(Long productId);
+
+
 }

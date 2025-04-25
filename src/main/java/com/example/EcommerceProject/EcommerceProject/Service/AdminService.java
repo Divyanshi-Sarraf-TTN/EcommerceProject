@@ -324,6 +324,10 @@ private boolean isNamePresentInSiblingsOrAncestors(String name, Category parent,
         System.out.println("Id"+categoryId);
         //check categoryid exist or not
         Category category=categoryRepository.findById(categoryId).orElseThrow(()->new ResourceNotFoundException("category not found"));
+
+        if (!categoryRepository.findByParentCategory(category).isEmpty()) {
+            throw new ValidationException("Invalid category");
+        }
         for(CategoryMetaDataFieldValueRequest.FieldValuePair pair:request.getFieldValuePairs())
         {
             Long fieldId=pair.getMetadataFieldId();

@@ -2,6 +2,7 @@ package com.example.EcommerceProject.EcommerceProject.Service;
 
 import com.example.EcommerceProject.EcommerceProject.DTO.*;
 import com.example.EcommerceProject.EcommerceProject.Entity.Category.Category;
+import com.example.EcommerceProject.EcommerceProject.Entity.Category.CategoryMetaDataFieldValues;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Customer;
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Role;
@@ -21,9 +22,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerService {
@@ -55,6 +58,11 @@ public class CustomerService {
     private AddressRepository addressRepository;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private     ProductRepository productRepository;
+    @Autowired
+    private VariationRepository variationRepository;
+    
 
     @Transactional
     public String registerCustomer(CustomerRequestDTO request) throws MessagingException {
@@ -123,7 +131,7 @@ public class CustomerService {
         addressRepository.save(address);
 
         String token = UUID.randomUUID().toString();
-        Date expiryTime = new Date(System.currentTimeMillis() + 60 * 1000 * 60 * 30); // 30 mins
+        Date expiryTime = new Date(System.currentTimeMillis() + 60 * 1000 * 60 * 3); // 30 mins
 
         Token tokenEntity = new Token(customer.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
@@ -134,7 +142,7 @@ public class CustomerService {
         return "Customer registered successfully! Please check your email to activate your account.";
     }
 
-    @Async
+
     public void sendActivationEmail(String email, String token) throws MessagingException {
         String activationLink = "http://localhost:8080/api/auth/customers/activate?token=" + token;
         logger.info("Sending activation email to: {}", email);
@@ -348,4 +356,6 @@ public class CustomerService {
 
         return response;
     }
+
+
 }

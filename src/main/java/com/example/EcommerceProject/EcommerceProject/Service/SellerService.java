@@ -113,7 +113,7 @@ public class SellerService {
         sellerRepository.save(seller);
 
         String token = UUID.randomUUID().toString();
-        Date expiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000);
+        Date expiryTime = new Date(System.currentTimeMillis() + 3*60*60*1000);
         Token tokenEntity = new Token(seller.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
 

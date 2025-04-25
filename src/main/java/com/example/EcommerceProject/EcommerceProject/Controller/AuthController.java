@@ -37,9 +37,9 @@ public class AuthController {
         return ResponseEntity.ok(userService.forgotPassword(forgotPasswordDTO));
     }
 
-    @PutMapping("/auth/updatepassword")
-    public ResponseEntity<String> updatePassword(@RequestBody @Valid ResetPasswordDTO resetPasswordDTO) throws MessagingException {
-        return ResponseEntity.ok(userService.updatePassword(resetPasswordDTO));
+    @PutMapping("/auth/resetpassword")
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordDTO resetPasswordDTO) throws MessagingException {
+        return ResponseEntity.ok(userService.resetPassword(resetPasswordDTO));
     }
 
 

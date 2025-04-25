@@ -1,6 +1,7 @@
 package com.example.EcommerceProject.EcommerceProject.DTO;
 
 import com.example.EcommerceProject.EcommerceProject.Entity.User.Address;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,10 @@ public class SellerRequestDTO {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
+    @Pattern(
+            regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$",
+            message = "Invalid email format"
+    )
     private String email;
 
     @NotBlank(message = "Password must not be blank")
@@ -28,7 +33,10 @@ public class SellerRequestDTO {
     private String confirmPassword;
 
     @NotBlank(message = "GST is required")
-    @Pattern(regexp = "^\\d{2}[A-Z]{5}\\d{4}[A-Z]{1}[A-Z\\d]{1}[Z]{1}[A-Z\\d]{1}$", message = "Invalid GST format")
+    @Pattern(
+            regexp = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$",
+            message = "Invalid GST format"
+    )
     private String gst;
 
     @NotBlank(message = "Company Name is required")
@@ -45,7 +53,7 @@ public class SellerRequestDTO {
 
     @NotBlank(message = "Last Name is required")
     private String lastName;
-
+    @Valid
     private AddressRequestDTO address;
 
     // Getters and Setters

@@ -56,7 +56,7 @@ public class UserService {
 
         tokenRepository.deleteByEmail(forgotPasswordDTO.getEmail());
         String token = UUID.randomUUID().toString();
-        Date expiryTime = new Date(System.currentTimeMillis() + 1 * 60 * 1000);
+        Date expiryTime = new Date(System.currentTimeMillis() + 15 * 60 * 1000);
         Token tokenEntity = new Token(user.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);
 
@@ -74,7 +74,7 @@ public class UserService {
         logger.info("Reset password email sent to {}", email);
     }
 
-    public String updatePassword(ResetPasswordDTO resetPasswordDTO) {
+    public String resetPassword(ResetPasswordDTO resetPasswordDTO) {
         logger.info("Attempting to update password using reset token");
 
         if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {

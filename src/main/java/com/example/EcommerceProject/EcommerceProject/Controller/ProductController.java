@@ -6,14 +6,10 @@ import com.example.EcommerceProject.EcommerceProject.Utils.JsonUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -140,7 +136,34 @@ public class ProductController {
 
         return ResponseEntity.ok(productService.activateProduct(ProductId));
     }
+    //get all productsbyadmin
+    @GetMapping("/viewallproductsbyadmin")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Page<AllProductResponse>> getAllProductsByAdmin(
+            @RequestParam(defaultValue = "10") Integer max,
+            @RequestParam(defaultValue = "0") Integer offset,
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "asc") String order,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long sellerId
+    ) {
+        Page<AllProductResponse> products = productService.getAllActiveProductsByAdmin(max, offset, sort, order, categoryId, sellerId);
+        return ResponseEntity.ok(products);
+    }
+    @GetMapping("/viewsimilarproducts")
+    @PreAuthorize("hasAuthority('ROLE_CUSTOMER')")
+    public ResponseEntity<Page<ProductSummaryDTO>> getSimilarProducts(@RequestParam Long productId,
+                                                                      @RequestParam(defaultValue = "10") int max,
+                                                                      @RequestParam(defaultValue = "0") int offset,
+                                                                      @RequestParam(defaultValue = "id") String sort,
+                                                                      @RequestParam(defaultValue = "asc") String order,
+                                                                      @RequestParam(required = false) String query
+    ) {
+        Page<ProductSummaryDTO> response = productService.getSimilarProducts(productId, max, offset, sort, order, query);
+        return ResponseEntity.ok(response);
+    }
 }
+
 
 
 

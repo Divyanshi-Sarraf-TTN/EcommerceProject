@@ -19,7 +19,7 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
-
+     @Async
     public void sendEmail(String to, String subject, String body) throws MessagingException {
         logger.info("Sending email to: {}", to);
         MimeMessage message = mailSender.createMimeMessage();
@@ -42,6 +42,7 @@ public class EmailService {
                 "Please review and activate the product.");
         mailSender.send(message);
     }
+    @Async
     public void sendProductActivationUpdateToSeller(Product product) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(product.getSeller().getEmail());
@@ -60,6 +61,7 @@ public class EmailService {
 
         mailSender.send(message);
     }
+    @Async
     public void sendProductDeActivationUpdateToSeller(Product product) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(product.getSeller().getEmail());
