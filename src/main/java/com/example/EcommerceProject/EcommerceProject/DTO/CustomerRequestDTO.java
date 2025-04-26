@@ -31,8 +31,8 @@ public class CustomerRequestDTO {
     private String email;
 
     @NotNull(message = "Contact number cannot be null")
-    @Min(value = 1000000000, message = "Contact number must be at least 10 digits")
-    @Max(value = 9999999999L, message = "Contact number must be at most 10 digits")
+    @Min(value = 1000000000L, message = "Contact number must be exactly 10 digits")
+    @Max(value = 9999999999L, message = "Contact number must be exactly 10 digits")
     private Long contact;
 
     @NotBlank(message = "Password must not be blank")
@@ -45,7 +45,7 @@ public class CustomerRequestDTO {
 
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
-    @Valid
+
     private AddressRequestDTO address;
 
 }

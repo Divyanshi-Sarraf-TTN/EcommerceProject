@@ -110,28 +110,36 @@ public class CustomerService {
         customer.setRole(role);
         logger.debug("Assigned role to customer: {}", role.getAuthority());
 
-        AddressRequestDTO addressRequestDTO = request.getAddress();
-        Address address = new Address();
-        address.setAddressLine(addressRequestDTO.getAddressLine());
-        address.setLabel(addressRequestDTO.getLabel());
-        address.setCity(addressRequestDTO.getCity());
-        address.setState(addressRequestDTO.getState());
-        address.setCountry(addressRequestDTO.getCountry());
-        address.setZipCode(addressRequestDTO.getZipCode());
+//        AddressRequestDTO addressRequestDTO = request.getAddress();
+//
+//        if (addressRequestDTO!=null) {
+//            Address address = new Address();
+//            address.setAddressLine(addressRequestDTO.getAddressLine());
+//            address.setLabel(addressRequestDTO.getLabel());
+//            address.setCity(addressRequestDTO.getCity());
+//            address.setState(addressRequestDTO.getState());
+//            address.setCountry(addressRequestDTO.getCountry());
+//            address.setZipCode(addressRequestDTO.getZipCode());
+//
+//            address.getCustomers().add(customer);
+//            customer.getAddresses().add(address);
+//        }
 
-        List<Customer> customers = Optional.ofNullable(address.getCustomers()).orElse(new ArrayList<>());
-        customers.add(customer);
-        address.setCustomers(customers);
 
-        List<Address> addresses = Optional.ofNullable(customer.getAddresses()).orElse(new ArrayList<>());
-        addresses.add(address);
-        customer.setAddresses(addresses);
+//
+//        List<Customer> customers = Optional.ofNullable(address.getCustomers()).orElse(new ArrayList<>());
+//        customers.add(customer);
+//        address.setCustomers(customers);
+
+//        List<Address> addresses = Optional.ofNullable(customer.getAddresses()).orElse(new ArrayList<>());
+//        addresses.add(address);
+//        customer.setAddresses(addresses);
 
         customerRepository.save(customer);
-        addressRepository.save(address);
+        //addressRepository.save(address);
 
         String token = UUID.randomUUID().toString();
-        Date expiryTime = new Date(System.currentTimeMillis() + 60 * 1000 * 60 * 3); // 30 mins
+        Date expiryTime = new Date(System.currentTimeMillis() + 60 * 1000 * 60 * 3); // 3
 
         Token tokenEntity = new Token(customer.getEmail(), token, expiryTime);
         tokenRepository.save(tokenEntity);

@@ -40,6 +40,7 @@ public class UserService {
     @Autowired
     private AddressRepository addressRepository;
 
+
     public String forgotPassword(ForgotPasswordDTO forgotPasswordDTO) throws MessagingException {
         logger.info("Attempting forgot password process for email: {}", forgotPasswordDTO.getEmail());
 

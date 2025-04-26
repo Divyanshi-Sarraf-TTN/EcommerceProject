@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -143,7 +144,14 @@ public class SellerService {
         sellerProfileResponseDTO.setCompanyContact(seller1.getCompanyContact());
         sellerProfileResponseDTO.setCompanyName(seller1.getCompanyName());
         sellerProfileResponseDTO.setGst(seller1.getGst());
-
+        if (seller1.getImage() != null) {
+            String imageUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/users/images/")
+                    .path(seller1.getImage())
+                    .toUriString();
+            sellerProfileResponseDTO.setImage(imageUrl);
+        }
+        System.out.println(seller1.getImage());
         logger.info("Seller profile fetched successfully for email: {}", seller1.getEmail());
         return sellerProfileResponseDTO;
     }
